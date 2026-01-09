@@ -1,0 +1,24 @@
+name: Build and Release DebtBomb
+on:
+  push:
+    tags:
+      - "v*"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Build binaries
+        run: |
+          mkdir -p dist
+          GOOS=linux GOARCH=amd64 go build -o dist/debtbomb-linux-amd64 ./cmd/debtbomb
+          GOOS=linux GOARCH=arm64 go build -o dist/debtbomb-linux-arm64 ./cmd/debtbomb
+          GOOS=darwin GOARCH=amd64 go build -o dist/debtbomb-darwin-amd64 ./cmd/debtbomb
+          GOOS=darwin GOARCH=arm64 go build -o dist/debtbomb-darwin-arm64 ./cmd/debtbomb
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
