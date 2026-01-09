@@ -1,0 +1,94 @@
+# DebtBomb
+
+DebtBomb is a cross-language technical-debt enforcement engine that scans source code comments for time-limited "debt bombs" and fails CI if any have expired.
+
+It helps teams manage technical debt by allowing developers to set expiration dates on TODOs or temporary hacks directly in the code. When the date passes, DebtBomb "explodes" (fails the build), forcing the team to address the debt.
+
+## Installation
+
+### Using Go Install
+
+```bash
+go install github.com/yourusername/debtbomb/cmd/debtbomb@latest
+```
+
+### Building from Source
+
+```bash
+git clone https://github.com/yourusername/debtbomb.git
+cd debtbomb
+go build -o debtbomb cmd/debtbomb/main.go
+```
+
+## Usage
+
+### CI Integration
+
+Add DebtBomb to your CI pipeline to prevent expired technical debt from merging.
+
+```bash
+# Fails with exit code 1 if any debt bomb has expired
+debtbomb check
+```
+
+### Warning Mode
+
+You can warn developers about upcoming debt expirations without failing the build:
+
+```bash
+# Warns about bombs expiring within the next 7 days
+debtbomb check --warn-in-days 7
+```
+
+### Listing Debt
+
+View a report of all technical debt in the project:
+
+```bash
+# List all debt bombs sorted by expiration date
+debtbomb list
+
+# List only expired bombs
+debtbomb list --expired
+
+# Output in JSON format (useful for custom tooling)
+debtbomb list --json
+```
+
+## Syntax
+
+DebtBomb scans for comments containing `@debtbomb`. It supports various comment styles (`//`, `#`, `--`, `/*`) and works with any file type.
+
+### Single-line Style
+Compact format using parentheses.
+
+```go
+// @debtbomb(expire=2026-02-10, owner=pricing, ticket=JIRA-123)
+```
+
+### Multi-segment Style
+More readable format using separators.
+
+```go
+// @debtbomb // expire: 2026-02-10 // owner: pricing // ticket: JIRA-123 // reason: Temporary surge override
+```
+
+### Fields
+
+- `expire` (Required): Expiration date in `YYYY-MM-DD` format.
+- `owner` (Optional): Team or individual responsible.
+- `ticket` (Optional): Issue tracker reference (e.g., JIRA-123).
+- `reason` (Optional): Context on why this debt exists.
+
+## Configuration
+
+DebtBomb automatically ignores common non-source directories:
+- `node_modules`
+- `.git`
+- `dist`
+- `build`
+- `vendor`
+
+## License
+
+MIT
