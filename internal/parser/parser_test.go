@@ -1,7 +1,6 @@
-package main
+package parser
 
 import (
-	"debtbomb/internal/parser"
 	"strings"
 	"testing"
 	"time"
@@ -12,7 +11,7 @@ func TestParseSingleLine(t *testing.T) {
 	// @debtbomb(expire=2023-01-01, owner=test)
 	code()
 	`
-	bombs, err := parser.Parse("test.go", strings.NewReader(content))
+	bombs, err := Parse("test.go", strings.NewReader(content))
 	if err != nil {
 		t.Fatalf("Parse failed: %v", err)
 	}
@@ -35,7 +34,7 @@ func TestParseMultiLine(t *testing.T) {
 	content := `
 	// @debtbomb // expire: 2023-01-01 // owner: test
 	`
-	bombs, err := parser.Parse("test.go", strings.NewReader(content))
+	bombs, err := Parse("test.go", strings.NewReader(content))
 	if err != nil {
 		t.Fatalf("Parse failed: %v", err)
 	}
