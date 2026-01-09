@@ -1,9 +1,9 @@
 package main
 
 import (
-	"debtbomb/internal/engine"
-	"debtbomb/internal/model"
-	"debtbomb/internal/output"
+	"github.com/jobin-404/debtbomb/internal/engine"
+	"github.com/jobin-404/debtbomb/internal/model"
+	"github.com/jobin-404/debtbomb/internal/output"
 	"flag"
 	"fmt"
 	"os"

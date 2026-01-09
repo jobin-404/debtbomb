@@ -1,9 +1,9 @@
 package engine
 
 import (
-	"debtbomb/internal/model"
-	"debtbomb/internal/parser"
-	"debtbomb/internal/scanner"
+	"github.com/jobin-404/debtbomb/internal/model"
+	"github.com/jobin-404/debtbomb/internal/parser"
+	"github.com/jobin-404/debtbomb/internal/scanner"
 	"os"
 	"sort"
 	"sync"

@@ -9,13 +9,13 @@ It helps teams manage technical debt by allowing developers to set expiration da
 ### Using Go Install
 
 ```bash
-go install github.com/yourusername/debtbomb/cmd/debtbomb@latest
+go install github.com/jobin-404/debtbomb/cmd/debtbomb@latest
 ```
 
 ### Building from Source
 
 ```bash
-git clone https://github.com/yourusername/debtbomb.git
+git clone https://github.com/jobin-404/debtbomb.git
 cd debtbomb
 go build -o debtbomb cmd/debtbomb/main.go
 ```

@@ -1,7 +1,7 @@
 package output
 
 import (
-	"debtbomb/internal/model"
+	"github.com/jobin-404/debtbomb/internal/model"
 	"encoding/json"
 	"fmt"
 	"os"

@@ -2,7 +2,7 @@ package parser
 
 import (
 	"bufio"
-	"debtbomb/internal/model"
+	"github.com/jobin-404/debtbomb/internal/model"
 	"fmt"
 	"io"
 	"regexp"
