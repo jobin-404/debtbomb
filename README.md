@@ -4,6 +4,8 @@ DebtBomb is a cross-language technical-debt enforcement engine that scans source
 
 It helps teams manage technical debt by allowing developers to set expiration dates on TODOs or temporary hacks directly in the code. When the date passes, DebtBomb "explodes" (fails the build), forcing the team to address the debt.
 
+![DebtBomb Output](assets/image.png)
+
 ## Installation
 
 ### Using Go Install
