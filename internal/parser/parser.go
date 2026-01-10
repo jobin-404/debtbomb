@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-// Pattern for single line: // @debtbomb(expire=2026-02-10, owner=pricing, ticket=JIRA-123)
-// Also supports other comment starters like # or --
 var singleLineRegex = regexp.MustCompile(`(?:\/\/|#|--|\/\*)\s*@debtbomb\((.*?)\)`)
 
 // Pattern for multi line start: // @debtbomb
@@ -39,29 +37,11 @@ func Parse(filename string, reader io.Reader) ([]model.DebtBomb, error) {
 			continue
 		}
 
-		// Check for multi-line format start
-		// Note: The prompt example for multi-line is actually on a single physical line but with multiple comment markers or separators?
-		// Example: // @debtbomb // expire: 2026-02-10 // owner: pricing // ticket: JIRA-123 // reason: Temporary Diwali surge override
-		// This looks like it's still one line of text, just structured differently.
-		// Let's check if the line contains @debtbomb and then parse key-values from the rest of the line.
-		if multiLineStartRegex.MatchString(lineText) {
-			// This strictly matches "@debtbomb" at end of line or before newline, which might imply the attributes are on following lines?
-			// BUT the example shows: // @debtbomb // expire: 2026-02-10 ...
-			// This is actually all on one line in the example provided in the prompt.
-			// Let's treat it as a line containing "@debtbomb" followed by attributes.
-		}
-
-		// Let's try a more general approach.
-		// If line contains "@debtbomb", we try to extract attributes.
 		if idx := strings.Index(lineText, "@debtbomb"); idx != -1 {
 			// Check if it was already handled by singleLineRegex (parentheses format)
 			if singleLineRegex.MatchString(lineText) {
 				continue
 			}
-
-			// Handle "Multi-line" style which is actually space/comment separated on one line or potentially multiple lines?
-			// The prompt says "Multi-line: // @debtbomb // expire: 2026-02-10 ..."
-			// This looks like one line to me. Let's parse the text after @debtbomb.
 			content := lineText[idx+len("@debtbomb"):]
 			bomb, err := parseKeyValueStyle(content)
 			if err == nil {
@@ -113,9 +93,6 @@ func parseAttributes(attrString string) (model.DebtBomb, error) {
 }
 
 func parseKeyValueStyle(content string) (model.DebtBomb, error) {
-	// Format: // expire: 2026-02-10 // owner: pricing ...
-	// We can split by //, #, -- etc or just look for key: value patterns.
-	// A simple regex might be best here to find "key: value"
 	
 	bomb := model.DebtBomb{}
 	foundExpire := false
