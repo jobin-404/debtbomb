@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/jobin-404/debtbomb/internal/model"
 )
@@ -76,8 +77,10 @@ func PrintTable(bombs []model.DebtBomb) {
 	// Calculate max widths
 	for _, b := range bombs {
 		dateStr := b.Expire.Format("2006-01-02")
-		if len(dateStr) > wExpires {
-			wExpires = len(dateStr)
+		timeLeftStr := timeLeft(b.Expire)
+		fullExpiresStr := fmt.Sprintf("%s %s", dateStr, timeLeftStr)
+		if len(fullExpiresStr) > wExpires {
+			wExpires = len(fullExpiresStr)
 		}
 		if len(b.Owner) > wOwner {
 			wOwner = len(b.Owner)
@@ -111,8 +114,9 @@ func PrintTable(bombs []model.DebtBomb) {
 	printSeparator()
 
 	for _, b := range bombs {
+		expiresWithTime := fmt.Sprintf("%s %s", b.Expire.Format("2006-01-02"), timeLeft(b.Expire))
 		fmt.Printf("| %-*s | %-*s | %-*s | %-*s |\n",
-			wExpires, b.Expire.Format("2006-01-02"),
+			wExpires, expiresWithTime,
 			wOwner, b.Owner,
 			wTicket, b.Ticket,
 			wLocation, fmt.Sprintf("%s:%d", b.File, b.Line),
@@ -145,5 +149,23 @@ func PrintCheckReport(expiredBombs []model.DebtBomb) {
 		if i < len(expiredBombs)-1 {
 			fmt.Println("")
 		}
+	}
+}
+
+func timeLeft(deadline time.Time) string {
+	tLeft := time.Until(deadline)
+
+	if tLeft <= 0 {
+		return "(expired)"
+	}
+
+	h := uint16(tLeft.Hours())   // total amount of hours INTEGER
+	d := h / 24                  // total amount of days INTEGER
+	m := uint16(tLeft.Minutes()) // total amount of minutes INTEGER
+
+	if h > 24 {
+		return fmt.Sprintf("(%dd%dh)", d, h%24)
+	} else {
+		return fmt.Sprintf("(%dh%dm)", h, m%60)
 	}
 }
