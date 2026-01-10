@@ -95,12 +95,39 @@ More readable format using separators.
 
 ## Configuration
 
-DebtBomb automatically ignores common non-source directories:
-- `node_modules`
-- `.git`
-- `dist`
-- `build`
-- `vendor`
+### Ignore Files (.debtbombignore)
+
+To exclude specific files or directories from the scan, create a `.debtbombignore` file in your project root. The syntax is similar to `.gitignore`.
+
+Example `.debtbombignore`:
+```text
+# Ignore migrations folder
+migrations/
+
+# Ignore legacy code
+legacy/
+
+# Ignore specific generated files
+src/generated/*.go
+```
+
+### Automatic Exclusions
+
+DebtBomb is optimized for large repositories and automatically ignores:
+
+**Directories:**
+- Dependencies: `node_modules`, `vendor`, `.venv`, `__pycache__`, etc.
+- Build Artifacts: `dist`, `build`, `out`, `target`, `bin`, `pkg`, `obj`, etc.
+- Version Control: `.git`, `.svn`, `.hg`
+- IDE/Tooling: `.idea`, `.vscode`, `.terraform`
+- Media/Assets: `images`, `assets`, `public`
+
+**Files:**
+- Binary files (images, videos, executables, archives)
+- Documents (PDF, Office)
+- Minified code (`.min.js`, `.min.css`)
+- Lock files (`.lock`)
+- **Large files**: Any file larger than 1MB is skipped automatically.
 
 ## License
 

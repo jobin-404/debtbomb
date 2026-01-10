@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/jobin-404/debtbomb/internal/engine"
-	"github.com/jobin-404/debtbomb/internal/model"
-	"github.com/jobin-404/debtbomb/internal/output"
 	"flag"
 	"fmt"
 	"os"
-	"time"
+
+	"github.com/jobin-404/debtbomb/internal/engine"
+	"github.com/jobin-404/debtbomb/internal/model"
+	"github.com/jobin-404/debtbomb/internal/output"
 )
 
 func main() {
@@ -39,7 +39,7 @@ func printUsage() {
 
 func runCheck() {
 	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
-	warnDays := checkCmd.Int("warn-in-days", 0, "Warn about bombs expiring within N days")
+	jsonOutput := checkCmd.Bool("json", false, "Output in JSON format")
 	checkCmd.Parse(os.Args[2:])
 
 	bombs, err := engine.Run(".")
@@ -48,30 +48,25 @@ func runCheck() {
 		os.Exit(1)
 	}
 
-	hasExpired := false
+	var expired []model.DebtBomb
 	for _, b := range bombs {
 		if b.IsExpired {
-			hasExpired = true
+			expired = append(expired, b)
 		}
+	}
+	hasExpired := len(expired) > 0
+
+	if *jsonOutput {
+		output.PrintJSON(bombs)
+		if hasExpired {
+			os.Exit(1)
+		}
+		os.Exit(0)
 	}
 
 	if hasExpired {
-		output.PrintHuman(bombs, false)
+		output.PrintCheckReport(expired)
 		os.Exit(1)
-	}
-
-	if *warnDays > 0 {
-		warningDate := time.Now().AddDate(0, 0, *warnDays)
-		foundWarning := false
-		for _, b := range bombs {
-			if !b.IsExpired && b.Expire.Before(warningDate) {
-				if !foundWarning {
-					fmt.Printf("⚠️  Warning: DebtBombs expiring within %d days:\n\n", *warnDays)
-					foundWarning = true
-				}
-				fmt.Printf("%s:%d expires on %s\n", b.File, b.Line, b.Expire.Format("2006-01-02"))
-			}
-		}
 	}
 
 	os.Exit(0)
@@ -89,7 +84,6 @@ func runList() {
 		os.Exit(1)
 	}
 
-	// Filter if needed
 	if *expiredOnly {
 		var expired []model.DebtBomb
 		for _, b := range bombs {
@@ -103,6 +97,6 @@ func runList() {
 	if *jsonOutput {
 		output.PrintJSON(bombs)
 	} else {
-		output.PrintHuman(bombs, true)
+		output.PrintTable(bombs)
 	}
 }
