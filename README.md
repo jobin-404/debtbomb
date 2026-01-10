@@ -12,6 +12,19 @@ It helps teams manage technical debt by allowing developers to set expiration da
 go install github.com/jobin-404/debtbomb/cmd/debtbomb@latest
 ```
 
+#### PATH Configuration
+
+If the `debtbomb` command is not recognized, add the Go binary directory to your system's PATH:
+
+**macOS / Linux:**
+```bash
+echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc # or ~/.bashrc
+source ~/.zshrc
+```
+
+**Windows:**
+Add `%USERPROFILE%\go\bin` to your PATH environment variable.
+
 ### Building from Source
 
 ```bash
