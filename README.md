@@ -1,33 +1,54 @@
-# DebtBomb
+# 🧨 DebtBomb
 
-DebtBomb is a cross-language technical-debt enforcement engine that scans source code comments for time-limited "debt bombs" and fails CI if any have expired.
+DebtBomb is a cross-language **technical-debt enforcement tool** that scans source code comments for time-limited “debt bombs” and fails CI when they expire.
 
-It helps teams manage technical debt by allowing developers to set expiration dates on TODOs or temporary hacks directly in the code. When the date passes, DebtBomb "explodes" (fails the build), forcing the team to address the debt.
+It lets teams ship temporary hacks safely by attaching an expiry date to them.
+When the date passes, the build fails — forcing the debt to be cleaned up instead of silently rotting forever.
 
 ![DebtBomb Output](assets/image.png)
 
+---
+
+## Why this exists
+
+Every codebase has comments like:
+
+```
+TODO: remove later
+FIXME: temporary workaround
+```
+
+They almost never get removed.
+
+DebtBomb gives those comments a **deadline**.
+
+Temporary code is allowed — but it must be **time-bounded, owned, and visible**.
+
+---
+
 ## Installation
 
-### Using Go Install
+### Using Go
 
 ```bash
 go install github.com/jobin-404/debtbomb/cmd/debtbomb@latest
 ```
 
-#### PATH Configuration
+If the `debtbomb` command is not found, add Go’s bin directory to your PATH:
 
-If the `debtbomb` command is not recognized, add the Go binary directory to your system's PATH:
+**macOS / Linux**
 
-**macOS / Linux:**
 ```bash
-echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc # or ~/.bashrc
+echo 'export PATH="$HOME/go/bin:$PATH"' >> ~/.zshrc  # or ~/.bashrc
 source ~/.zshrc
 ```
 
-**Windows:**
+**Windows**
 Add `%USERPROFILE%\go\bin` to your PATH environment variable.
 
-### Building from Source
+---
+
+### Build from source
 
 ```bash
 git clone https://github.com/jobin-404/debtbomb.git
@@ -35,102 +56,124 @@ cd debtbomb
 go build -o debtbomb cmd/debtbomb/main.go
 ```
 
+---
+
 ## Usage
 
-### CI Integration
-
-Add DebtBomb to your CI pipeline to prevent expired technical debt from merging.
+### Enforce in CI
 
 ```bash
-# Fails with exit code 1 if any debt bomb has expired
 debtbomb check
 ```
 
-### Warning Mode
+Fails with exit code `1` if any debt bomb is expired.
 
-You can warn developers about upcoming debt expirations without failing the build:
+---
+
+### Warning window
+
+Warn before things explode:
 
 ```bash
-# Warns about bombs expiring within the next 7 days
 debtbomb check --warn-in-days 7
 ```
 
-### Listing Debt
+This surfaces expiring debt in CI without blocking releases yet.
 
-View a report of all technical debt in the project:
+---
+
+### Listing debt
 
 ```bash
-# List all debt bombs sorted by expiration date
 debtbomb list
-
-# List only expired bombs
 debtbomb list --expired
-
-# Output in JSON format (useful for custom tooling)
 debtbomb list --json
 ```
 
+---
+
 ## Syntax
 
-DebtBomb scans for comments containing `@debtbomb`. It supports various comment styles (`//`, `#`, `--`, `/*`) and works with any file type.
+DebtBomb looks for comments containing `@debtbomb`.
+It works with any language because it only reads comments.
 
-### Single-line Style
-Compact format using parentheses.
+Supported comment styles:
+
+* `//`
+* `#`
+* `--`
+* `/* */`
+
+---
+
+### Single-line
 
 ```go
 // @debtbomb(expire=2026-02-10, owner=pricing, ticket=JIRA-123)
 ```
 
-### Multi-segment Style
-More readable format using separators.
+---
+
+### Multi-line
 
 ```go
-// @debtbomb // expire: 2026-02-10 // owner: pricing // ticket: JIRA-123 // reason: Temporary surge override
+// @debtbomb
+//   expire: 2026-02-10
+//   owner: pricing
+//   ticket: JIRA-123
+//   reason: Temporary surge override
 ```
+
+---
 
 ### Fields
 
-- `expire` (Required): Expiration date in `YYYY-MM-DD` format.
-- `owner` (Optional): Team or individual responsible.
-- `ticket` (Optional): Issue tracker reference (e.g., JIRA-123).
-- `reason` (Optional): Context on why this debt exists.
+| Field    | Description                |
+| -------- | -------------------------- |
+| `expire` | **Required.** YYYY-MM-DD   |
+| `owner`  | Team or person responsible |
+| `ticket` | Issue tracker reference    |
+| `reason` | Why this debt exists       |
 
-## Configuration
+---
 
-### Ignore Files (.debtbombignore)
+## Ignoring files
 
-To exclude specific files or directories from the scan, create a `.debtbombignore` file in your project root. The syntax is similar to `.gitignore`.
+Create a `.debtbombignore` file to exclude paths:
 
-Example `.debtbombignore`:
-```text
-# Ignore migrations folder
+```
 migrations/
-
-# Ignore legacy code
 legacy/
-
-# Ignore specific generated files
 src/generated/*.go
 ```
 
-### Automatic Exclusions
+---
 
-DebtBomb is optimized for large repositories and automatically ignores:
+## Automatic exclusions
 
-**Directories:**
-- Dependencies: `node_modules`, `vendor`, `.venv`, `__pycache__`, etc.
-- Build Artifacts: `dist`, `build`, `out`, `target`, `bin`, `pkg`, `obj`, etc.
-- Version Control: `.git`, `.svn`, `.hg`
-- IDE/Tooling: `.idea`, `.vscode`, `.terraform`
-- Media/Assets: `images`, `assets`, `public`
+DebtBomb skips files that are not human-written source.
 
-**Files:**
-- Binary files (images, videos, executables, archives)
-- Documents (PDF, Office)
-- Minified code (`.min.js`, `.min.css`)
-- Lock files (`.lock`)
-- **Large files**: Any file larger than 1MB is skipped automatically.
+**Directories**
+
+* `node_modules`, `vendor`, `.venv`, `__pycache__`
+* `dist`, `build`, `out`, `target`, `bin`, `pkg`, `obj`
+* `.git`, `.svn`, `.hg`
+* `.idea`, `.vscode`, `.terraform`
+
+**Files**
+
+* Images, videos, archives, executables
+* PDFs and office documents
+* Minified files (`.min.js`, `.min.css`)
+* Lock files
+* Any file larger than **1MB**
+
+This keeps it fast even on large repos.
+
+---
 
 ## License
 
 MIT
+
+---
