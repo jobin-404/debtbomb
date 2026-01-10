@@ -1,11 +1,10 @@
 # 🧨 DebtBomb
+![DebtBomb Logo](assets/logo.png)
 
 DebtBomb is a cross-language **technical-debt enforcement tool** that scans source code comments for time-limited “debt bombs” and fails CI when they expire.
 
 It lets teams ship temporary hacks safely by attaching an expiry date to them.
 When the date passes, the build fails — forcing the debt to be cleaned up instead of silently rotting forever.
-
-![DebtBomb Logo](assets/logo.png)
 
 ---
 
