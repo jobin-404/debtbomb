@@ -5,7 +5,7 @@ DebtBomb is a cross-language **technical-debt enforcement tool** that scans sour
 It lets teams ship temporary hacks safely by attaching an expiry date to them.
 When the date passes, the build fails — forcing the debt to be cleaned up instead of silently rotting forever.
 
-![DebtBomb Output](assets/image.png)
+![DebtBomb Logo](assets/logo.png)
 
 ---
 
