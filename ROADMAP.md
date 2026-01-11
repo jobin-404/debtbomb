@@ -13,6 +13,7 @@ The foundation is in place:
 * Parse expiry, owner, ticket, and reason
 * Fail CI when expired bombs exist
 * `debtbomb check` and `debtbomb list`
+* `debtbomb report` for aggregated stats
 * `--warn-in-days` support
 * Human-readable output
 * JSON output

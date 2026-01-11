@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jobin-404/debtbomb/internal/model"
+	"github.com/jobin-404/debtbomb/internal/report"
 )
 
 type jsonOutput struct {
@@ -126,16 +127,29 @@ func PrintTable(bombs []model.DebtBomb) {
 }
 
 // PrintCheckReport prints the failure report for the check command
-func PrintCheckReport(expiredBombs []model.DebtBomb) {
-	if len(expiredBombs) == 0 {
-		return
+func PrintCheckReport(expiredBombs []model.DebtBomb, warningBombs []model.DebtBomb, warnDays int) {
+	if len(expiredBombs) > 0 {
+		fmt.Printf("DebtBomb exploded: %d expired\n\n", len(expiredBombs))
+		printBombList(expiredBombs)
 	}
 
-	fmt.Printf("DebtBomb exploded: %d expired\n\n", len(expiredBombs))
+	if len(warningBombs) > 0 {
+		if len(expiredBombs) > 0 {
+			fmt.Println("\n")
+		}
+		fmt.Printf("DebtBomb warning: %d expiring within %d days\n\n", len(warningBombs), warnDays)
+		printBombList(warningBombs)
+	}
+}
 
-	for i, b := range expiredBombs {
+func printBombList(bombs []model.DebtBomb) {
+	for i, b := range bombs {
 		fmt.Printf("%s:%d\n", b.File, b.Line)
-		fmt.Printf("Expired: %s\n", b.Expire.Format("2006-01-02"))
+		label := "Expires"
+		if b.IsExpired {
+			label = "Expired"
+		}
+		fmt.Printf("%s: %s\n", label, b.Expire.Format("2006-01-02"))
 		if b.Owner != "" {
 			fmt.Printf("Owner: %s\n", b.Owner)
 		}
@@ -146,7 +160,7 @@ func PrintCheckReport(expiredBombs []model.DebtBomb) {
 			fmt.Printf("Reason: %s\n", b.Reason)
 		}
 
-		if i < len(expiredBombs)-1 {
+		if i < len(bombs)-1 {
 			fmt.Println("")
 		}
 	}
@@ -168,4 +182,57 @@ func timeLeft(deadline time.Time) string {
 	} else {
 		return fmt.Sprintf("(%dh%dm)", h, m%60)
 	}
+}
+
+func PrintReportJSON(r report.Report) {
+	encoder := json.NewEncoder(os.Stdout)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(r); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to encode json: %v\n", err)
+	}
+}
+
+func PrintReport(r report.Report) {
+	printSection("Debt by owner", r.ByOwner, 5)
+	printSection("Debt by folder", r.ByFolder, 5)
+	printSection("Debt by reason", r.ByReason, 5)
+
+	fmt.Println("By urgency")
+	fmt.Printf("  %-15s %d\n", "Expired", r.ByUrgency.Expired)
+	fmt.Printf("  %-15s %d\n", "< 30 days", r.ByUrgency.Within30Days)
+	fmt.Printf("  %-15s %d\n", "< 90 days", r.ByUrgency.Within90Days)
+	fmt.Printf("  %-15s %d\n", "> 90 days", r.ByUrgency.MoreThan90Days)
+	fmt.Println()
+
+	fmt.Println("Extremes")
+	if r.Oldest != nil {
+		fmt.Printf("  Oldest: %s (%s) in %s:%d\n",
+			r.Oldest.Expire.Format("2006-01-02"),
+			timeLeft(r.Oldest.Expire),
+			r.Oldest.File,
+			r.Oldest.Line)
+	}
+	if r.Newest != nil {
+		fmt.Printf("  Newest: %s (%s) in %s:%d\n",
+			r.Newest.Expire.Format("2006-01-02"),
+			timeLeft(r.Newest.Expire),
+			r.Newest.File,
+			r.Newest.Line)
+	}
+}
+
+func printSection(title string, items []report.CountItem, limit int) {
+	fmt.Println(title)
+	count := 0
+	for _, item := range items {
+		if count >= limit {
+			break
+		}
+		fmt.Printf("  %-20s %d\n", item.Key, item.Count)
+		count++
+	}
+	if len(items) > limit {
+		fmt.Printf("  ... and %d more\n", len(items)-limit)
+	}
+	fmt.Println()
 }

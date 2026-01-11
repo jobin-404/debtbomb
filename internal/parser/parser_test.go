@@ -8,7 +8,7 @@ import (
 
 func TestParseSingleLine(t *testing.T) {
 	content := `
-	// @debtbomb(expire=2023-01-01, owner=test)
+	// @debtbomb(expire=2026-01-14, owner=test)
 	code()
 	`
 	bombs, err := Parse("test.go", strings.NewReader(content))
@@ -32,7 +32,7 @@ func TestParseSingleLine(t *testing.T) {
 
 func TestParseMultiLine(t *testing.T) {
 	content := `
-	// @debtbomb // expire: 2023-01-01 // owner: test
+	// @debtbomb // expire: 2026-01-12 // owner: test
 	`
 	bombs, err := Parse("test.go", strings.NewReader(content))
 	if err != nil {
