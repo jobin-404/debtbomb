@@ -8,6 +8,7 @@ import (
 	"github.com/jobin-404/debtbomb/internal/engine"
 	"github.com/jobin-404/debtbomb/internal/model"
 	"github.com/jobin-404/debtbomb/internal/output"
+	"github.com/jobin-404/debtbomb/internal/report"
 )
 
 func main() {
@@ -23,6 +24,8 @@ func main() {
 		runCheck()
 	case "list":
 		runList()
+	case "report":
+		runReport()
 	default:
 		fmt.Printf("Unknown command: %s\n", command)
 		printUsage()
@@ -35,6 +38,7 @@ func printUsage() {
 	fmt.Println("Commands:")
 	fmt.Println("  check   Scan for expired debtbombs and exit 1 if found")
 	fmt.Println("  list    List all debtbombs")
+	fmt.Println("  report  Show aggregated statistics about technical debt")
 }
 
 func runCheck() {
@@ -98,5 +102,25 @@ func runList() {
 		output.PrintJSON(bombs)
 	} else {
 		output.PrintTable(bombs)
+	}
+}
+
+func runReport() {
+	reportCmd := flag.NewFlagSet("report", flag.ExitOnError)
+	jsonOutput := reportCmd.Bool("json", false, "Output in JSON format")
+	reportCmd.Parse(os.Args[2:])
+
+	bombs, err := engine.Run(".")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error scanning: %v\n", err)
+		os.Exit(1)
+	}
+
+	r := report.Generate(bombs)
+
+	if *jsonOutput {
+		output.PrintReportJSON(r)
+	} else {
+		output.PrintReport(r)
 	}
 }
