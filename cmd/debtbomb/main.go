@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/jobin-404/debtbomb/internal/engine"
 	"github.com/jobin-404/debtbomb/internal/model"
@@ -44,6 +45,7 @@ func printUsage() {
 func runCheck() {
 	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
 	jsonOutput := checkCmd.Bool("json", false, "Output in JSON format")
+	warnDays := checkCmd.Int("warn-in-days", 0, "Warn about bombs expiring within N days")
 	checkCmd.Parse(os.Args[2:])
 
 	bombs, err := engine.Run(".")
@@ -53,11 +55,29 @@ func runCheck() {
 	}
 
 	var expired []model.DebtBomb
+	var warning []model.DebtBomb
+	
 	for _, b := range bombs {
 		if b.IsExpired {
 			expired = append(expired, b)
 		}
 	}
+
+	// Check for warning window
+	if *warnDays > 0 {
+		today := time.Now().Truncate(24 * time.Hour)
+		warningDate := today.AddDate(0, 0, *warnDays)
+
+		for _, b := range bombs {
+			if !b.IsExpired {
+				// If expire date is before or equal to warning date
+				if !b.Expire.After(warningDate) {
+					warning = append(warning, b)
+				}
+			}
+		}
+	}
+
 	hasExpired := len(expired) > 0
 
 	if *jsonOutput {
@@ -68,9 +88,13 @@ func runCheck() {
 		os.Exit(0)
 	}
 
-	if hasExpired {
-		output.PrintCheckReport(expired)
-		os.Exit(1)
+	if hasExpired || len(warning) > 0 {
+		output.PrintCheckReport(expired, warning, *warnDays)
+		if hasExpired {
+			os.Exit(1)
+		}
+		// If only warnings, exit 0
+		os.Exit(0)
 	}
 
 	os.Exit(0)

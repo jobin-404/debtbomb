@@ -127,16 +127,29 @@ func PrintTable(bombs []model.DebtBomb) {
 }
 
 // PrintCheckReport prints the failure report for the check command
-func PrintCheckReport(expiredBombs []model.DebtBomb) {
-	if len(expiredBombs) == 0 {
-		return
+func PrintCheckReport(expiredBombs []model.DebtBomb, warningBombs []model.DebtBomb, warnDays int) {
+	if len(expiredBombs) > 0 {
+		fmt.Printf("DebtBomb exploded: %d expired\n\n", len(expiredBombs))
+		printBombList(expiredBombs)
 	}
 
-	fmt.Printf("DebtBomb exploded: %d expired\n\n", len(expiredBombs))
+	if len(warningBombs) > 0 {
+		if len(expiredBombs) > 0 {
+			fmt.Println("\n")
+		}
+		fmt.Printf("DebtBomb warning: %d expiring within %d days\n\n", len(warningBombs), warnDays)
+		printBombList(warningBombs)
+	}
+}
 
-	for i, b := range expiredBombs {
+func printBombList(bombs []model.DebtBomb) {
+	for i, b := range bombs {
 		fmt.Printf("%s:%d\n", b.File, b.Line)
-		fmt.Printf("Expired: %s\n", b.Expire.Format("2006-01-02"))
+		label := "Expires"
+		if b.IsExpired {
+			label = "Expired"
+		}
+		fmt.Printf("%s: %s\n", label, b.Expire.Format("2006-01-02"))
 		if b.Owner != "" {
 			fmt.Printf("Owner: %s\n", b.Owner)
 		}
@@ -147,7 +160,7 @@ func PrintCheckReport(expiredBombs []model.DebtBomb) {
 			fmt.Printf("Reason: %s\n", b.Reason)
 		}
 
-		if i < len(expiredBombs)-1 {
+		if i < len(bombs)-1 {
 			fmt.Println("")
 		}
 	}
