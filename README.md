@@ -59,6 +59,8 @@ go build -o debtbomb cmd/debtbomb/main.go
 
 ## Usage
 
+For a complete reference of all commands and flags, see [CLI Reference](docs/CLI_REFERENCE.md).
+
 ### Enforce in CI
 
 ```bash
