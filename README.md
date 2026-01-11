@@ -91,6 +91,24 @@ debtbomb list --json
 
 ---
 
+### Aggregated Reports
+
+Generate a high-level summary of technical debt:
+
+```bash
+debtbomb report
+debtbomb report --json
+```
+
+This shows debt breakdown by:
+
+* Owner
+* Folder/Module
+* Reason
+* Urgency (Expired, < 30 days, < 90 days)
+
+---
+
 ## Syntax
 
 DebtBomb looks for comments containing `@debtbomb`.
