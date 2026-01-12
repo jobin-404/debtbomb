@@ -5,6 +5,7 @@ import (
 	"github.com/jobin-404/debtbomb/internal/parser"
 	"github.com/jobin-404/debtbomb/internal/scanner"
 	"os"
+	"runtime"
 	"sort"
 	"sync"
 	"time"
@@ -12,56 +13,64 @@ import (
 
 // Run executes the debtbomb scan and returns all found items
 func Run(rootPath string) ([]model.DebtBomb, error) {
-	// 1. Scan for files
-	files, err := scanner.Scan(scanner.Config{
-		RootPath: rootPath,
-		Excluded: scanner.DefaultExcluded(),
-	})
-	if err != nil {
-		return nil, err
-	}
+	filesChan := make(chan string, 100)
+	resultsChan := make(chan []model.DebtBomb, 100)
+	errChan := make(chan error, 1)
 
-	// 2. Parse files concurrently
-	var allBombs []model.DebtBomb
-	var mu sync.Mutex
+	go func() {
+		err := scanner.Scan(scanner.Config{
+			RootPath: rootPath,
+			Excluded: scanner.DefaultExcluded(),
+		}, filesChan)
+		if err != nil {
+			errChan <- err
+		}
+	}()
+
 	var wg sync.WaitGroup
+	numWorkers := runtime.NumCPU() * 2
 
-	// Limit concurrency to avoid too many open files
-	semaphore := make(chan struct{}, 100)
-
-	for _, file := range files {
+	for i := 0; i < numWorkers; i++ {
 		wg.Add(1)
-		go func(f string) {
+		go func() {
 			defer wg.Done()
-			semaphore <- struct{}{}
-			defer func() { <-semaphore }()
+			for file := range filesChan {
+				fileHandle, err := os.Open(file)
+				if err != nil {
+					continue
+				}
 
-			fileHandle, err := os.Open(f)
-			if err != nil {
-				return // Skip unreadable files
-			}
-			defer fileHandle.Close()
+				bombs, err := parser.Parse(file, fileHandle)
+				fileHandle.Close()
 
-			bombs, err := parser.Parse(f, fileHandle)
-			if err == nil && len(bombs) > 0 {
-				mu.Lock()
-				allBombs = append(allBombs, bombs...)
-				mu.Unlock()
+				if err == nil && len(bombs) > 0 {
+					resultsChan <- bombs
+				}
 			}
-		}(file)
+		}()
 	}
 
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(resultsChan)
+	}()
+	var allBombs []model.DebtBomb
+	for bombs := range resultsChan {
+		allBombs = append(allBombs, bombs...)
+	}
 
-	// 3. Check expiration status
+	select {
+	case err := <-errChan:
+		return nil, err
+	default:
+	}
+
 	today := time.Now().Truncate(24 * time.Hour)
 	for i := range allBombs {
 		if today.After(allBombs[i].Expire) {
 			allBombs[i].IsExpired = true
 		}
 	}
-
-	// 4. Sort by expire date
 	sort.Slice(allBombs, func(i, j int) bool {
 		return allBombs[i].Expire.Before(allBombs[j].Expire)
 	})

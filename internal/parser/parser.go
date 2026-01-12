@@ -15,6 +15,9 @@ var singleLineRegex = regexp.MustCompile(`(?:\/\/|#|--|\/\*)\s*@debtbomb\((.*?)\
 // Pattern for multi line start: // @debtbomb
 var multiLineStartRegex = regexp.MustCompile(`(?:\/\/|#|--|\/\*)\s*@debtbomb\s*$`)
 
+// Regex to find key: value pairs where key is one of our expected fields
+var kvRegex = regexp.MustCompile(`(expire|owner|ticket|reason)\s*:\s*([^\/\#\*]+)`)
+
 // Parse scans the content and returns a list of DebtBombs
 func Parse(filename string, reader io.Reader) ([]model.DebtBomb, error) {
 	var bombs []model.DebtBomb
@@ -97,8 +100,6 @@ func parseKeyValueStyle(content string) (model.DebtBomb, error) {
 	bomb := model.DebtBomb{}
 	foundExpire := false
 
-	// Regex to find key: value pairs where key is one of our expected fields
-	kvRegex := regexp.MustCompile(`(expire|owner|ticket|reason)\s*:\s*([^\/\#\*]+)`)
 	matches := kvRegex.FindAllStringSubmatch(content, -1)
 
 	for _, match := range matches {

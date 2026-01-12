@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"bufio"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -77,9 +78,10 @@ func loadIgnoreFile(root string) ([]string, error) {
 	return patterns, scanner.Err()
 }
 
-// Scan walks the directory tree and returns a list of files to process
-func Scan(config Config) ([]string, error) {
-	var files []string
+// Scan walks the directory tree and streams file paths to the provided channel
+func Scan(config Config, paths chan<- string) error {
+	defer close(paths)
+
 	excludedMap := make(map[string]bool)
 	for _, dir := range config.Excluded {
 		excludedMap[dir] = true
@@ -87,7 +89,7 @@ func Scan(config Config) ([]string, error) {
 
 	ignorePatterns, _ := loadIgnoreFile(config.RootPath)
 
-	err := filepath.Walk(config.RootPath, func(path string, info os.FileInfo, err error) error {
+	err := filepath.WalkDir(config.RootPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -97,13 +99,13 @@ func Scan(config Config) ([]string, error) {
 			relPath = path
 		}
 
-		if info.IsDir() {
-			if excludedMap[info.Name()] {
+		if d.IsDir() {
+			if excludedMap[d.Name()] {
 				return filepath.SkipDir
 			}
 			for _, p := range ignorePatterns {
 				pClean := strings.TrimSuffix(p, "/")
-				if matched, _ := filepath.Match(pClean, info.Name()); matched {
+				if matched, _ := filepath.Match(pClean, d.Name()); matched {
 					return filepath.SkipDir
 				}
 				if matched, _ := filepath.Match(pClean, relPath); matched {
@@ -112,16 +114,15 @@ func Scan(config Config) ([]string, error) {
 			}
 			return nil
 		}
-		if info.Size() > 1024*1024 {
-			return nil
-		}
+		
 		if isIgnoredExt(path) {
 			return nil
 		}
+
 		for _, p := range ignorePatterns {
 			pClean := strings.TrimSuffix(p, "/")
 			// Match filename
-			if matched, _ := filepath.Match(pClean, info.Name()); matched {
+			if matched, _ := filepath.Match(pClean, d.Name()); matched {
 				return nil
 			}
 			// Match relative path
@@ -130,9 +131,18 @@ func Scan(config Config) ([]string, error) {
 			}
 		}
 
-		files = append(files, path)
+		// Check size (requires Info())
+		info, err := d.Info()
+		if err != nil {
+			return nil
+		}
+		if info.Size() > 1024*1024 {
+			return nil
+		}
+
+		paths <- path
 		return nil
 	})
 
-	return files, err
+	return err
 }
