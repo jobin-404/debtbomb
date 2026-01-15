@@ -1,6 +1,10 @@
 # 🧨 DebtBomb
 ![DebtBomb Logo](assets/logo.png)
 
+![GitHub stars](https://img.shields.io/github/stars/jobin-404/debtbomb?style=flat&color=F97316)
+![CI](https://img.shields.io/github/actions/workflow/status/jobin-404/debtbomb/ci.yml?style=flat)
+
+
 
 <p align="center">
   <img src="https://img.shields.io/badge/Jira-Issue%20Tracking-1F2A37?style=flat&logo=jira&logoColor=F97316" />
