@@ -1,8 +1,8 @@
 # 🧨 DebtBomb
 ![DebtBomb Logo](assets/logo.png)
 
-![GitHub stars](https://img.shields.io/github/stars/jobin-404/debtbomb?style=flat&color=F97316)
-![CI](https://img.shields.io/github/actions/workflow/status/jobin-404/debtbomb/ci.yml?style=flat)
+![GitHub stars](https://img.shields.io/github/stars/jobin-404/debtbomb?color=F97316)
+![Release](https://github.com/jobin-404/debtbomb/actions/workflows/release.yml/badge.svg)
 
 
 
