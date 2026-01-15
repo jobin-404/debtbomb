@@ -190,3 +190,74 @@ src/generated/
 
 **Automatic Exclusions:**
 DebtBomb automatically excludes common non-source directories (`.git`, `node_modules`, etc.) and binary files to ensure performance.
+
+---
+
+## Integrations
+
+DebtBomb supports integrating with Jira for ticket management and chat platforms (Slack, Discord, MS Teams) for notifications.
+
+### Configuration
+
+Integrations are configured via a configuration file at `.debtbomb/config.toml` and environment variables for sensitive credentials.
+
+**Example `.debtbomb/config.toml`:**
+
+```toml
+[jira]
+default_project = "ENG"
+issue_type = "Technical Debt"
+
+# Notify on expiration
+[[notify]]
+on = "expired"
+via = "slack"
+
+# Notify on expiration (create Jira ticket)
+[[notify]]
+on = "expired"
+via = "jira"
+
+# Warn 7 days before expiration
+[[notify]]
+on = "expiring_soon"
+via = "slack"
+days = 7
+```
+
+### Environment Variables
+
+| Variable | Description | Required For |
+|----------|-------------|--------------|
+| `JIRA_BASE_URL` | The URL of your Jira instance (e.g., `https://your-domain.atlassian.net`). | Jira |
+| `JIRA_EMAIL` | The email address associated with your Jira account. | Jira |
+| `JIRA_API_TOKEN` | An API token generated from your Atlassian account settings. | Jira |
+| `SLACK_WEBHOOK_URL` | The Slack Incoming Webhook URL. | Slack |
+| `DISCORD_WEBHOOK_URL` | The Discord Webhook URL. | Discord |
+| `TEAMS_WEBHOOK_URL` | The Microsoft Teams Incoming Webhook URL. | Teams |
+
+### Jira Integration
+
+When enabled, DebtBomb can automatically create Jira tickets when a debt bomb expires and close them when the debt is resolved.
+
+**Setup:**
+1.  Set the `JIRA_*` environment variables.
+2.  Configure `[jira]` settings in `.debtbomb/config.toml`.
+3.  Add a notification rule with `via = "jira"` and `on = "expired"`.
+
+**Behavior:**
+- **On Expiration:** A new Jira ticket is created with the `expired` label and details about the debt. The ticket key is stored locally to track the relationship.
+- **On Resolution:** When the debt bomb is removed from the code, the corresponding Jira ticket is automatically transitioned to "Done" or "Closed".
+
+### Chat Notifications
+
+DebtBomb can send alerts to chat platforms when debt expires or is approaching its deadline.
+
+**Supported Platforms:**
+- **Slack** (`via = "slack"`)
+- **Discord** (`via = "discord"`)
+- **Microsoft Teams** (`via = "teams"`)
+
+**Events:**
+- **`expired`**: Triggered when a debt bomb date is reached.
+- **`expiring_soon`**: Triggered `N` days before expiration (configured via `days` parameter).

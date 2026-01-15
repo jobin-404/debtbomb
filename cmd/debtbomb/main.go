@@ -6,13 +6,21 @@ import (
 	"os"
 	"time"
 
+	"github.com/jobin-404/debtbomb/internal/config"
 	"github.com/jobin-404/debtbomb/internal/engine"
+	"github.com/jobin-404/debtbomb/internal/jira"
 	"github.com/jobin-404/debtbomb/internal/model"
+	"github.com/jobin-404/debtbomb/internal/notify"
 	"github.com/jobin-404/debtbomb/internal/output"
 	"github.com/jobin-404/debtbomb/internal/report"
+	"github.com/jobin-404/debtbomb/internal/state"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env file if it exists
+	_ = godotenv.Load()
+
 	if len(os.Args) < 2 {
 		printUsage()
 		os.Exit(1)
@@ -27,6 +35,8 @@ func main() {
 		runList()
 	case "report":
 		runReport()
+	case "notify":
+		runNotify()
 	default:
 		fmt.Printf("Unknown command: %s\n", command)
 		printUsage()
@@ -40,6 +50,7 @@ func printUsage() {
 	fmt.Println("  check   Scan for expired debtbombs and exit 1 if found")
 	fmt.Println("  list    List all debtbombs")
 	fmt.Println("  report  Show aggregated statistics about technical debt")
+	fmt.Println("  notify  Notify about expired or expiring debtbombs")
 }
 
 func runCheck() {
@@ -56,7 +67,7 @@ func runCheck() {
 
 	var expired []model.DebtBomb
 	var warning []model.DebtBomb
-	
+
 	for _, b := range bombs {
 		if b.IsExpired {
 			expired = append(expired, b)
@@ -146,5 +157,50 @@ func runReport() {
 		output.PrintReportJSON(r)
 	} else {
 		output.PrintReport(r)
+	}
+}
+
+func runNotify() {
+	notifyCmd := flag.NewFlagSet("notify", flag.ExitOnError)
+	expired := notifyCmd.Bool("expired", false, "Process expired bombs")
+	expireInDays := notifyCmd.Int("expire-in-days", 0, "Process bombs expiring in N days")
+	notifyCmd.Parse(os.Args[2:])
+
+	// Load Config
+	cfg, err := config.Load(".")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: failed to load config: %v\n", err)
+		cfg = &config.Config{}
+	}
+
+	// Load State
+	st, err := state.Load(".")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error loading state: %v\n", err)
+		os.Exit(0)
+	}
+
+	// Init Jira
+	var jClient *jira.Client
+	if cfg.Jira.BaseURL != "" && cfg.Jira.Email != "" && cfg.Jira.APIToken != "" {
+		jClient = jira.NewClient(cfg.Jira.BaseURL, cfg.Jira.Email, cfg.Jira.APIToken)
+	}
+
+	router := &notify.Router{
+		Config: cfg,
+		Jira:   jClient,
+		State:  st,
+	}
+
+	bombs, err := engine.Run(".")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error scanning: %v\n", err)
+		os.Exit(0)
+	}
+
+	if err := router.SyncAndNotify(bombs, *expireInDays, *expired); err != nil {
+
+		fmt.Fprintf(os.Stderr, "Error during sync/notify: %v\n", err)
+		os.Exit(0)
 	}
 }
