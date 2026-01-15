@@ -149,7 +149,14 @@ func parseAttributes(attrString string) (model.DebtBomb, error) {
 	foundExpire := false
 
 	for _, part := range parts {
-		kv := strings.SplitN(strings.TrimSpace(part), "=", 2)
+		part = strings.TrimSpace(part)
+		var kv []string
+		if strings.Contains(part, "=") {
+			kv = strings.SplitN(part, "=", 2)
+		} else if strings.Contains(part, ":") {
+			kv = strings.SplitN(part, ":", 2)
+		}
+
 		if len(kv) != 2 {
 			continue
 		}
