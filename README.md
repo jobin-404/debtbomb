@@ -1,4 +1,4 @@
-![DebtBomb Logo](assets/logo.png)
+![DebtBomb Logo](assets/banner.png)
 
 ![GitHub stars](https://img.shields.io/github/stars/jobin-404/debtbomb?color=F97316)
 ![Release](https://github.com/jobin-404/debtbomb/actions/workflows/release.yml/badge.svg)
