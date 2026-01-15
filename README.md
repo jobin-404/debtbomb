@@ -1,6 +1,14 @@
 # 🧨 DebtBomb
 ![DebtBomb Logo](assets/logo.png)
 
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Jira-Issue%20Tracking-1F2A37?style=flat&logo=jira&logoColor=F97316" />
+  <img src="https://img.shields.io/badge/Slack-Team%20Alerts-1F2A37?style=flat&logo=slack&logoColor=F97316" />
+  <img src="https://img.shields.io/badge/Discord-Real--time%20Updates-1F2A37?style=flat&logo=discord&logoColor=F97316" />
+  <img src="https://img.shields.io/badge/Teams-Org%20Visibility-1F2A37?style=flat&logo=microsoftteams&logoColor=F97316" />
+</p>
+
 DebtBomb is a cross-language **technical-debt enforcement tool** that scans source code comments for time-limited “debt bombs” and fails CI when they expire.
 
 It lets teams ship temporary hacks safely by attaching an expiry date to them.
