@@ -1,6 +1,6 @@
 {
   "name": "debtbomb",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "NPM wrapper for DebtBomb CLI",
   "main": "bin/debtbomb.js",
   "bin": {
@@ -23,5 +23,9 @@
   "license": "MIT",
   "engines": {
     "node": ">=12.0.0"
-  }
+  },
+  "publishConfig": {
+  "access": "public",
+  "provenance": true
+}
 }

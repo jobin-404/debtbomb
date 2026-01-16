@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
+      contents: read
       id-token: write   # required for npm OIDC
 
     environment: npm-publish   # must match npm OIDC environment
@@ -51,5 +51,4 @@ jobs:
       # --- Publish npm package via OIDC ---
       - name: Publish npm package
         working-directory: ./npm
-        run: npm publish --access public
-  
+        run: npm publish --access public --provenance
