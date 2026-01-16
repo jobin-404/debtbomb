@@ -38,6 +38,20 @@ Temporary code is allowed — but it must be **time-bounded, owned, and visible*
 
 ## Installation
 
+### Using npm (Recommended for JS/TS projects)
+
+Install as a dev dependency to use [DebtBomb](https://www.npmjs.com/package/debtbomb) without installing Go:
+
+```bash
+npm install -D debtbomb
+```
+
+You can then run it via `npx`:
+
+```bash
+npx debtbomb check
+```
+
 ### Using Go
 
 ```bash
