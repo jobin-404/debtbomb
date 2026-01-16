@@ -1,16 +1,28 @@
 name: Build and Release DebtBomb
+
 on:
   push:
     tags:
       - "v*"
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      id-token: write   # required for npm OIDC
+
+    environment: npm-publish   # must match npm OIDC environment
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-go@v5
         with:
           go-version: "1.22"
+
+      # --- Build Go binaries ---
       - name: Build binaries
         run: |
           mkdir -p dist
@@ -18,7 +30,26 @@ jobs:
           GOOS=linux GOARCH=arm64 go build -o dist/debtbomb-linux-arm64 ./cmd/debtbomb
           GOOS=darwin GOARCH=amd64 go build -o dist/debtbomb-darwin-amd64 ./cmd/debtbomb
           GOOS=darwin GOARCH=arm64 go build -o dist/debtbomb-darwin-arm64 ./cmd/debtbomb
+          GOOS=windows GOARCH=amd64 go build -o dist/debtbomb-windows-amd64.exe ./cmd/debtbomb
+
+      # --- GitHub Release ---
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
+
+      # --- Setup Node for npm ---
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      # --- Enable npm provenance (verified publisher) ---
+      - name: Enable npm provenance
+        run: npm config set provenance true
+
+      # --- Publish npm package via OIDC ---
+      - name: Publish npm package
+        working-directory: ./npm
+        run: npm publish --access public
+  
