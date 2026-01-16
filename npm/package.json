@@ -3,6 +3,10 @@
   "version": "0.4.2",
   "description": "NPM wrapper for DebtBomb CLI",
   "main": "bin/debtbomb.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jobin-404/debtbomb.git"
+  },
   "bin": {
     "debtbomb": "bin/debtbomb.js"
   },
