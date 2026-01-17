@@ -1,14 +1,16 @@
 package engine
 
 import (
-	"github.com/jobin-404/debtbomb/internal/model"
-	"github.com/jobin-404/debtbomb/internal/parser"
-	"github.com/jobin-404/debtbomb/internal/scanner"
 	"os"
 	"runtime"
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/jobin-404/debtbomb/internal/git"
+	"github.com/jobin-404/debtbomb/internal/model"
+	"github.com/jobin-404/debtbomb/internal/parser"
+	"github.com/jobin-404/debtbomb/internal/scanner"
 )
 
 // Run executes the debtbomb scan and returns all found items
@@ -44,6 +46,20 @@ func Run(rootPath string) ([]model.DebtBomb, error) {
 				fileHandle.Close()
 
 				if err == nil && len(bombs) > 0 {
+					blameInfo, _ := git.GetBlame(file)
+					if blameInfo != nil {
+						for i := range bombs {
+							if info, ok := blameInfo[bombs[i].Line]; ok {
+								bombs[i].GitAuthor = info.Author
+								bombs[i].CommitHash = info.Hash
+								bombs[i].CommitDate = info.Date
+
+								if bombs[i].Owner == "" {
+									bombs[i].Owner = info.Author
+								}
+							}
+						}
+					}
 					resultsChan <- bombs
 				}
 			}
