@@ -2,7 +2,7 @@
 
 ![GitHub stars](https://img.shields.io/github/stars/jobin-404/debtbomb?color=F97316)
 ![Release](https://github.com/jobin-404/debtbomb/actions/workflows/release.yml/badge.svg)
-[![npm weekly downloads](https://img.shields.io/npm/dw/debtbomb)](https://www.npmjs)
+[![npm weekly downloads](https://img.shields.io/npm/dw/debtbomb)](https://www.npmjs.com/package/debtbomb)
 
 # 🧨 DebtBomb
 
